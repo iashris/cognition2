@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Parametric Cognition Measurement</title>
+   </head>
+   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+   <style type="text/css">
+      html{
+      overflow: hidden;
+      font-family: Source Sans Pro;
+      }
+      .averagebar{
+      text-align: center;
+      }
+      .controls{
+      top:0;left:0;
+      position: absolute;
+      width: 25%; height: 100%;
+      background: #EBEFF1;
+      padding: 25px;
+      padding-right: 18px;
+      }
+      .topbar{
+      top:0;
+      width: 100%;
+      left: 0;
+      font-size: 1.2em;
+      font-weight: 900;
+      color:#555;
+      margin-bottom: 15px;
+      text-align: center;
+      }
+      .content{
+      width:85%;
+      text-align: justify;
+      margin-bottom: 10%;
+      }
+      .main{
+      top:0;left:0;
+      position: absolute;
+      width: 70%;
+      left:25%;
+      height: 100%;
+      background: #37163B;
+      color:white;
+      }
+      span{
+      display: inline-block;
+      text-transform: uppercase;
+      color:#666;
+      font-size: 0.8em;
+      }
+      input{
+      display: inline-block;
+      }
+      .l{
+      clear: both;
+      float:left;
+      }
+      .r{
+      float: right;
+      }
+      .widget{
+      text-align: center;
+      font-size: 0.95em;
+      }
+      button{
+      background: #1EA1F3 !important;
+      color:white !important;
+      }
+   </style>
+   <body>
+      <div class="controls">
+         <div class="content">
+            <div class="topbar">Road Width</div>
+            <div id="slider"></div>
+            <span class="l">Narrower</span><span class="r">Wider</span>
+            <br>
+            <div class="topbar">Tree Height</div>
+            <div id="slider2"></div>
+            <span class="l">Shorter</span><span class="r">Taller</span>
+            <br>
+            <div class="topbar">Number of Trees</div>
+            <div id="slider3"></div>
+            <span class="l">Less</span><span class="r">More</span>
+            <br>
+            <div class="topbar">Foliage Color Saturation</div>
+            <div id="slider4"></div>
+            <span class="l">Less</span><span class="r">More</span>
+            <br>
+            <div class="topbar">Tree Trunk Width</div>
+            <div id="slider5"></div>
+            <span class="l">Narrower</span><span class="r">Wider</span>
+            <br>
+            <div class="topbar">Foliage Size</div>
+            <div id="slider6"></div>
+            <span class="l">Smaller</span><span class="r">Larger</span>
+            <br>
+            <div class="topbar">Foliage Profile</div>
+            <div class="widget">
+               <label for="radio-1">Circular</label>
+               <input class="l" type="radio" name="radio-1" id="radio-1" checked>
+               <label for="radio-3">Trapezoidal</label>
+               <input class="r" type="radio" name="radio-1" id="radio-3">
+               <label for="radio-2">Conical</label>
+               <input class="l" type="radio" name="radio-1" id="radio-2">
+               <label for="radio-4">Rectangular</label>
+               <input class="r" type="radio" name="radio-1" id="radio-4">
+               <br><br>
+               <button onclick='submitthis();'>Submit</button>
+               <br>
+               <br>
+            </div>
+            <div class="averagebar">
+               <select name="avgprop" id="avgprop">
+                  <option>A</option>
+                  <option selected="selected">B</option>
+                  <option>C</option>
+                  <option>D</option>
+                  <option>E</option>
+               </select>
+               <br>
+               <select name="avgshape" id="avgshape">
+                  <option>circle</option>
+                  <option selected="selected">cone</option>
+                  <option>rect</option>
+                  <option>trapezium</option>
+               </select>
+               <br><br>
+               <button onclick="avgthis();">Average</button>
+            </div>
+         </div>
+      </div>
+      <div class="main" id="myContainer"></div>
+      <!--This is where the p5 happens-->
+   </body>
+   <script src="https://www.gstatic.com/firebasejs/3.6.3/firebase.js"></script>
+   <script
+      src="https://code.jquery.com/jquery-2.2.4.min.js"
+      integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+      crossorigin="anonymous"></script>
+   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.4/p5.min.js"></script>
+   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.4/addons/p5.dom.min.js"></script>
+   <script
+      src="http://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+      integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+      crossorigin="anonymous"></script>
+   <script type="text/javascript">
+      var roadwidth=25;
+      var foliageshape;
+      var factors=['A','B','C','D','E'];
+      var treeheight=250,satx=120,numtrees=10,treetrunk=5,foliagesize=150;
+      
+      $( function() {
+          $( "#slider" ).slider({
+            value: 25,
+            min: -100,
+            max: 150,
+          	change:function(event,ui){
+          		roadwidth=ui.value;
+          	
+          	}});
+      
+          $( "#slider2" ).slider({
+            value: 250,
+            min: 100,
+            max: 800,
+          	change:function(event,ui){
+          		treeheight=ui.value;
+          	
+          	}});
+      
+          $( "#slider3" ).slider({
+            value: 10,
+            min: 2,
+            max: 50,
+          	change:function(event,ui){
+          		numtrees=ui.value;
+          		
+          	}});
+      
+           $( "#slider4" ).slider({
+            value: 120,
+            min: 0,
+            max: 180,
+          	change:function(event,ui){
+          		satx=255-ui.value;
+          	}});    
+                $( "#slider5" ).slider({
+            value: 5,
+            min: 0.5,
+            max: 30,
+          	change:function(event,ui){
+          		treetrunk=ui.value;
+          	}});    
+            $( "#slider6" ).slider({
+            value: 150,
+            min: 50,
+            max: 600,
+          	change:function(event,ui){
+          		foliagesize=ui.value;
+          	}});    
+      $('input').checkboxradio();
+      $('button').button();
+      $('select').selectmenu();
+        } );
+      function setup(){
+      	// parameter=factors[parseInt(5*Math.random())];
+        parameter=window.location.href.split("http://iashris.com/cognition2/?").pop();
+      	alert('Welcome to the test. Please adjust the sliders on the left to give the environment the desired quality.');
+      	var myCanvas = createCanvas(windowWidth*0.75,windowHeight);
+        myCanvas.parent('myContainer');
+        noStroke();
+	
+	//Confoguration for firebase database
+        var config = {
+          apiKey: "AIzaSyDmLbvGA-HLI3VLQsLVR-bZFtxEXBvpBMY",
+          authDomain: "tree-cognition-32169.firebaseapp.com",
+          databaseURL: "https://tree-cognition-32169.firebaseio.com",
+          storageBucket: "tree-cognition-32169.appspot.com",
+          messagingSenderId: "193634910601"
+        };
+      
+        firebase.initializeApp(config);
+        database=firebase.database();
+      }
+      function draw(){
+      	background('#D7EDEB');
+      	fill('#2DBE61');
+      	rect(0,height/2,width,height/2);
+      	drawroad();
+      }
+      function drawroad(){
+      	fill('#7D7D7C'); //main road
+      	var cX=width/2;var cY=height/2;
+      	beginShape();
+      		vertex(cX-18-roadwidth/5,cY);
+      		vertex(cX+18+roadwidth/5,cY);
+      		vertex(width-200+roadwidth,height);
+      		vertex(200-roadwidth,height);
+      	endShape();
+      
+      	fill('#F5E3C8');
+      	beginShape(); //left row
+      		vertex(cX-18-roadwidth/5,cY);
+      		vertex(cX-18-roadwidth/5-8,cY);
+      		vertex(200-roadwidth-50,height);
+      		vertex(200-roadwidth,height);
+      	endShape();
+      	beginShape(); //right row
+      		vertex(cX+18+roadwidth/5,cY);
+      		vertex(cX+18+roadwidth/5+8,cY);
+      		vertex(width-200+roadwidth+50,height);
+      		vertex(width-200+roadwidth,height);
+      	endShape();
+      
+      	//buildings
+      	stroke('#000000');
+      	//right line
+      	line(cX+48+roadwidth/5,cY,width+roadwidth-30,height);
+      	var weights=[0.0,0.06,0.12,0.18,0.24,0.35,0.5,0.75,1.05];
+      	for(var i=0;i<weights.length;i++){
+      		var star=weights[i]*cY;
+      		var vert=cY+star;
+      		var hert=cX+48+roadwidth/5+((cX-78+0.8*roadwidth)*star/cY);
+      		var buildht=Math.pow(i,1.2)*30;
+      		fill('#A8A5A4');
+      		rect(hert,vert-buildht,buildht/2,buildht);
+      		rect(2*cX-hert-buildht/2,vert-buildht,buildht/2,buildht);
+      		line(cX-18-roadwidth/5-30,cY,-roadwidth+30,height);
+      		var dfgdfg=(hert-10*i-cX-48-0.2*roadwidth)/(cX-78+0.8*roadwidth);
+      		fill('#ffffff');
+      		if(hert>cX){
+      			beginShape();
+      			vertex(hert,vert);
+      			vertex(hert,vert-buildht);
+      			vertex(hert-i*10,vert-buildht+i*5);
+      			vertex(hert-i*10,cY*(1+dfgdfg));
+      			endShape();
+      			beginShape();
+      			vertex(2*cX-hert,vert);
+      			vertex(2*cX-hert,vert-buildht);
+      			vertex(2*cX-hert+i*10,vert-buildht+i*5);
+      			vertex(2*cX-hert+i*10,cY*(1+dfgdfg));
+      			endShape();
+      
+      		}
+      	}
+      for(var j=1;j<numtrees;j++){
+      	var starry=cY*(1.6/numtrees)*j;
+      	var verty=cY+starry;
+      	var herty=cX+48+roadwidth/5+((cX-128+0.2*roadwidth)*starry/cY);
+      	fill('#9B6F4F');
+      	var trunksize=2+0.5*j*(treetrunk/numtrees);
+      	var treeH=10+j*(treeheight/numtrees)+40*(noise(45*sin(j))-0.5);
+      	rect(herty-trunksize,verty-treeH,2*trunksize,treeH);
+      	rect(width-herty-trunksize,verty-treeH,2*trunksize,treeH);
+      
+      //foliage
+      	var foliageS=5+0.5*j*(foliagesize/numtrees);
+      	var collo='rgba(30,'+satx+',90,0.88)';
+      	fill(collo);
+      	if($('#radio-1').is(':checked')){
+      		foliageshape='circle';
+      	ellipse(herty,verty-treeH,foliageS,foliageS);
+      	ellipse(2*cX-herty,verty-treeH,foliageS,foliageS);
+      	}
+      	else if($('#radio-2').is(':checked')){
+      		foliageshape='cone';
+      		triangle(herty,verty-treeH-1.6*foliageS,herty-foliageS*0.5,verty-treeH+0.4*foliageS,herty+foliageS*0.5,verty-treeH+foliageS*0.4);
+      		triangle(width-herty,verty-treeH-1.6*foliageS,width-herty+foliageS*0.5,verty-treeH+0.4*foliageS,width-herty-foliageS*0.5,verty-treeH+foliageS*0.4);
+      	}
+      	else if($('#radio-4').is(':checked')){
+      		foliageshape='rect';
+      		rectMode(CENTER);
+      		rect(herty,verty-treeH,foliageS,foliageS);
+      		rect(2*cX-herty,verty-treeH,foliageS,foliageS);
+      		rectMode(CORNER);
+      	}
+      	else{
+      		foliageshape='trapezium';
+      		beginShape();
+      		vertex(herty-0.3*foliageS,verty-treeH-1.4*foliageS);
+      		vertex(herty+0.3*foliageS,verty-treeH-1.4*foliageS);
+      		vertex(herty+0.6*foliageS,verty-treeH+0.4*foliageS);
+      		vertex(herty-0.6*foliageS,verty-treeH+0.4*foliageS);
+      		vertex(herty-0.3*foliageS,verty-treeH-1.4*foliageS);
+      		endShape();
+      		beginShape();
+      		vertex(width-herty+0.3*foliageS,verty-treeH-1.4*foliageS);
+      		vertex(width-herty-0.3*foliageS,verty-treeH-1.4*foliageS);
+      		vertex(width-herty-0.6*foliageS,verty-treeH+0.4*foliageS);
+      		vertex(width-herty+0.6*foliageS,verty-treeH+0.4*foliageS);
+      		vertex(width-herty+0.3*foliageS,verty-treeH-1.4*foliageS);
+      		endShape();
+      	}
+      }
+      }
+      function windowResized() {
+      	resizeCanvas(windowWidth*0.75, windowHeight);
+      }
+      function submitthis(){
+      var data={
+      roadwidth:roadwidth,
+      treeheight:treeheight,
+      numtrees:numtrees,
+      saturation:satx,
+      trunksize:treetrunk,
+      foliagesize:foliagesize
+      };
+      var ref=database.ref(parameter+'/'+foliageshape);
+      ref.push(data);
+      alert('Thank you for your response!');
+      
+      }
+      function avgthis(){
+      	shp=$('#avgshape').val();
+      	var typ=$('#avgprop').val();
+      	database.ref(typ+'/'+shp).once('value').then(function(snapshot) {
+        var content=snapshot.val();
+        console.log(content);
+        if(!content)return alert('Empty! Not enough values');
+        var summer={};
+        for(prop in content[Object.keys(content)[0]]){
+        	summer[prop]=Object.keys(content).reduce(function(prev,key){
+        		return prev+content[key][prop];
+        	},0);
+        }
+        var averager={};
+        var lenz=Object.keys(content).length;
+        for(propk in summer)averager[propk]=Math.round(summer[propk]/lenz);
+        arrange(averager.roadwidth,averager.treeheight,averager.numtrees,averager.saturation,averager.trunksize,averager.foliagesize);
+      });
+      
+      }
+      function arrange(qroadwidth,qtreeheight,qnumtrees,qsat,qtrunksize,qfolsize){
+      	$('#slider').slider('value',qroadwidth);
+      	roadwidth=qroadwidth;
+      	$('#slider2').slider('value',qtreeheight);
+      	treeheight=qtreeheight;
+      	$('#slider3').slider('value',qnumtrees);
+      	numtrees=qnumtrees;
+      	$('#slider4').slider('value',qsat);
+      	satx=qsat;
+      	$('#slider5').slider('value',qtrunksize);
+      	trunksize=qtrunksize;
+      	$('#slider6').slider('value',qfolsize);
+      	foliagesize=qfolsize;
+      	if(shp=='circle'){
+      $('#radio-1').prop('checked',true);
+      	}
+      	else if(shp=='cone'){
+      $('#radio-2').prop('checked',true);
+      	}
+      	else if(shp=='trapezium'){
+      $('#radio-3').prop('checked',true);
+      	}
+      	else{
+      $('#radio-4').prop('checked',true);
+      	}
+      
+      	}
+   </script>
+</html>
